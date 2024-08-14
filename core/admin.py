@@ -1,4 +1,3 @@
-from black.nodes import prev_siblings_are
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 
