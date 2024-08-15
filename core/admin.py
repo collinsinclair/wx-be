@@ -8,16 +8,16 @@ models: set = {
     VitalSignDescriptor,
     Category,
     Condition,
-    TextEntry,
+    Note,
     Prevention,
     SignsSymptoms,
-    TreatmentPrincipals,
+    TreatmentPrinciples,
     EvacuationGuidelines,
 }
 
 
 class TextEntryInline(GenericTabularInline):
-    model = TextEntry
+    model = Note
     extra = 1
 
 
@@ -31,7 +31,7 @@ class ListModelAAdmin(admin.ModelAdmin):
     inlines = [TextEntryInline]
 
 
-@admin.register(TreatmentPrincipals)
+@admin.register(TreatmentPrinciples)
 class ListModelAAdmin(admin.ModelAdmin):
     inlines = [TextEntryInline]
 
@@ -44,7 +44,7 @@ class ListModelAAdmin(admin.ModelAdmin):
 already_registered: set = {
     Prevention,
     SignsSymptoms,
-    TreatmentPrincipals,
+    TreatmentPrinciples,
     EvacuationGuidelines,
 }
 not_registered: set = models - already_registered

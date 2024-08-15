@@ -50,7 +50,7 @@ class Condition(models.Model):
         verbose_name_plural = "Conditions"
 
 
-class TextEntry(models.Model):
+class Note(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
@@ -61,13 +61,13 @@ class TextEntry(models.Model):
         return self.text[:50]
 
     class Meta:
-        verbose_name_plural = "Text Entries"
+        verbose_name_plural = "Notes"
 
 
 class ListBase(models.Model):
     condition = models.ForeignKey(Condition, on_delete=models.PROTECT)
     descriptor = models.CharField(max_length=100, null=True, blank=True)
-    text_entries = GenericRelation(TextEntry)
+    notes = GenericRelation(Note)
 
     class Meta:
         abstract = True
@@ -95,7 +95,7 @@ class SignsSymptoms(ListBase):
         verbose_name_plural = "Signs/Symptoms"
 
 
-class TreatmentPrincipals(ListBase):
+class TreatmentPrinciples(ListBase):
 
     def __str__(self):
         string_rep: str = f"Tx - {self.condition.name}"

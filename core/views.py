@@ -6,8 +6,8 @@ from .models import (
     EvacuationGuidelines,
     Prevention,
     SignsSymptoms,
-    TextEntry,
-    TreatmentPrincipals,
+    Note,
+    TreatmentPrinciples,
     VitalSign,
     VitalSignDescriptor,
 )
@@ -46,7 +46,7 @@ class ConditionViewSet(viewsets.ModelViewSet):
 
 
 class TextEntryViewSet(viewsets.ModelViewSet):
-    queryset = TextEntry.objects.all()
+    queryset = Note.objects.all()
     serializer_class = TextEntrySerializer
 
 
@@ -61,7 +61,7 @@ class SignsSymptomsViewSet(viewsets.ModelViewSet):
 
 
 class TreatmentPrincipalsViewSet(viewsets.ModelViewSet):
-    queryset = TreatmentPrincipals.objects.all()
+    queryset = TreatmentPrinciples.objects.all()
     serializer_class = TreatmentPrincipalsSerializer
 
 

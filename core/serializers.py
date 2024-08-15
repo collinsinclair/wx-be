@@ -7,8 +7,8 @@ from .models import (
     EvacuationGuidelines,
     Prevention,
     SignsSymptoms,
-    TextEntry,
-    TreatmentPrincipals,
+    Note,
+    TreatmentPrinciples,
     VitalSign,
     VitalSignDescriptor,
 )
@@ -48,7 +48,7 @@ class TextEntrySerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = TextEntry
+        model = Note
         fields = ["id", "content_type", "object_id", "text"]
 
 
@@ -93,7 +93,7 @@ class TreatmentPrincipalsSerializer(serializers.ModelSerializer):
     condition = ConditionSerializer()
 
     class Meta:
-        model = TreatmentPrincipals
+        model = TreatmentPrinciples
         fields = ["id", "condition", "descriptor"]
 
 
@@ -133,7 +133,7 @@ class TreatmentPrincipalsWithTextEntriesSerializer(serializers.ModelSerializer):
     text_entries = TextEntrySerializer(many=True)
 
     class Meta:
-        model = TreatmentPrincipals
+        model = TreatmentPrinciples
         fields = ["id", "condition", "descriptor", "text_entries"]
 
 
