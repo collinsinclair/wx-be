@@ -2,15 +2,15 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from .models import (
-    VitalSign,
-    VitalSignDescriptor,
     Category,
     Condition,
-    TextEntry,
+    EvacuationGuidelines,
     Prevention,
     SignsSymptoms,
+    TextEntry,
     TreatmentPrincipals,
-    EvacuationGuidelines,
+    VitalSign,
+    VitalSignDescriptor,
 )
 
 
@@ -21,7 +21,7 @@ class VitalSignSerializer(serializers.ModelSerializer):
 
 
 class VitalSignDescriptorSerializer(serializers.ModelSerializer):
-    vital_sign = serializers.PrimaryKeyRelatedField(queryset=VitalSign.objects.all())
+    vital_sign = VitalSignSerializer()
 
     class Meta:
         model = VitalSignDescriptor
@@ -35,7 +35,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ConditionSerializer(serializers.ModelSerializer):
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    category = CategorySerializer()
 
     class Meta:
         model = Condition
@@ -43,10 +43,9 @@ class ConditionSerializer(serializers.ModelSerializer):
 
 
 class TextEntrySerializer(serializers.ModelSerializer):
-    content_type = serializers.PrimaryKeyRelatedField(
-        queryset=ContentType.objects.all()
+    content_type = serializers.SlugRelatedField(
+        slug_field="model", queryset=ContentType.objects.all()
     )
-    object_id = serializers.IntegerField()
 
     class Meta:
         model = TextEntry
@@ -54,7 +53,7 @@ class TextEntrySerializer(serializers.ModelSerializer):
 
 
 class PreventionSerializer(serializers.ModelSerializer):
-    condition = serializers.PrimaryKeyRelatedField(queryset=Condition.objects.all())
+    condition = ConditionSerializer()
 
     class Meta:
         model = Prevention
@@ -62,16 +61,10 @@ class PreventionSerializer(serializers.ModelSerializer):
 
 
 class SignsSymptomsSerializer(serializers.ModelSerializer):
-    condition = serializers.PrimaryKeyRelatedField(queryset=Condition.objects.all())
-    vital_signs = serializers.PrimaryKeyRelatedField(
-        queryset=VitalSignDescriptor.objects.all(), many=True
-    )
-    related_signs_symptoms = serializers.PrimaryKeyRelatedField(
-        queryset=SignsSymptoms.objects.all(), many=True
-    )
-    text_entries = serializers.PrimaryKeyRelatedField(
-        queryset=TextEntry.objects.all(), many=True
-    )
+    condition = ConditionSerializer()
+    vital_signs = VitalSignDescriptorSerializer(many=True)
+    related_signs_symptoms = serializers.SerializerMethodField()
+    text_entries = TextEntrySerializer(many=True)
 
     class Meta:
         model = SignsSymptoms
@@ -84,9 +77,20 @@ class SignsSymptomsSerializer(serializers.ModelSerializer):
             "text_entries",
         ]
 
+    def get_related_signs_symptoms(self, obj):
+        return SignsSymptomsRelatedSerializer(
+            obj.related_signs_symptoms.all(), many=True
+        ).data
+
+
+class SignsSymptomsRelatedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SignsSymptoms
+        fields = ["id", "descriptor"]
+
 
 class TreatmentPrincipalsSerializer(serializers.ModelSerializer):
-    condition = serializers.PrimaryKeyRelatedField(queryset=Condition.objects.all())
+    condition = ConditionSerializer()
 
     class Meta:
         model = TreatmentPrincipals
@@ -94,8 +98,86 @@ class TreatmentPrincipalsSerializer(serializers.ModelSerializer):
 
 
 class EvacuationGuidelinesSerializer(serializers.ModelSerializer):
-    condition = serializers.PrimaryKeyRelatedField(queryset=Condition.objects.all())
+    condition = ConditionSerializer()
 
     class Meta:
         model = EvacuationGuidelines
         fields = ["id", "condition", "descriptor"]
+
+
+class SignsSymptomsWithTextEntriesSerializer(serializers.ModelSerializer):
+    condition = ConditionSerializer()
+    vital_signs = VitalSignDescriptorSerializer(many=True)
+    related_signs_symptoms = serializers.SerializerMethodField()
+    text_entries = TextEntrySerializer(many=True)
+
+    class Meta:
+        model = SignsSymptoms
+        fields = [
+            "id",
+            "condition",
+            "descriptor",
+            "vital_signs",
+            "related_signs_symptoms",
+            "text_entries",
+        ]
+
+    def get_related_signs_symptoms(self, obj):
+        return SignsSymptomsRelatedSerializer(
+            obj.related_signs_symptoms.all(), many=True
+        ).data
+
+
+class TreatmentPrincipalsWithTextEntriesSerializer(serializers.ModelSerializer):
+    condition = ConditionSerializer()
+    text_entries = TextEntrySerializer(many=True)
+
+    class Meta:
+        model = TreatmentPrincipals
+        fields = ["id", "condition", "descriptor", "text_entries"]
+
+
+class EvacuationGuidelinesWithTextEntriesSerializer(serializers.ModelSerializer):
+    condition = ConditionSerializer()
+    text_entries = TextEntrySerializer(many=True)
+
+    class Meta:
+        model = EvacuationGuidelines
+        fields = ["id", "condition", "descriptor", "text_entries"]
+
+
+class ConditionDetailSerializer(serializers.ModelSerializer):
+    signs_symptoms = serializers.SerializerMethodField()
+    treatment_principals = serializers.SerializerMethodField()
+    evacuation_guidelines = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Condition
+        fields = [
+            "id",
+            "name",
+            "category",
+            "signs_symptoms",
+            "treatment_principals",
+            "evacuation_guidelines",
+        ]
+
+    def get_signs_symptoms(self, obj):
+        signs_symptoms = obj.signssymptoms_set.prefetch_related("text_entries").all()
+        return SignsSymptomsWithTextEntriesSerializer(signs_symptoms, many=True).data
+
+    def get_treatment_principals(self, obj):
+        treatment_principals = obj.treatmentprincipals_set.prefetch_related(
+            "text_entries"
+        ).all()
+        return TreatmentPrincipalsWithTextEntriesSerializer(
+            treatment_principals, many=True
+        ).data
+
+    def get_evacuation_guidelines(self, obj):
+        evacuation_guidelines = obj.evacuationguidelines_set.prefetch_related(
+            "text_entries"
+        ).all()
+        return EvacuationGuidelinesWithTextEntriesSerializer(
+            evacuation_guidelines, many=True
+        ).data

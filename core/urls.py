@@ -1,16 +1,17 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    VitalSignViewSet,
-    VitalSignDescriptorViewSet,
     CategoryViewSet,
+    ConditionDetailView,
     ConditionViewSet,
-    TextEntryViewSet,
+    EvacuationGuidelinesViewSet,
     PreventionViewSet,
     SignsSymptomsViewSet,
+    TextEntryViewSet,
     TreatmentPrincipalsViewSet,
-    EvacuationGuidelinesViewSet,
+    VitalSignDescriptorViewSet,
+    VitalSignViewSet,
 )
 
 router = DefaultRouter()
@@ -26,4 +27,9 @@ router.register(r"evacuation-guidelines", EvacuationGuidelinesViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
+    path(
+        "conditions-detail/<int:pk>/",
+        ConditionDetailView.as_view(),
+        name="condition-detail",
+    ),
 ]

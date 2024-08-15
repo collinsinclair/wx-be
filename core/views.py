@@ -1,26 +1,27 @@
-from rest_framework import viewsets
+from rest_framework import generics, viewsets
 
 from .models import (
-    VitalSign,
-    VitalSignDescriptor,
     Category,
     Condition,
-    TextEntry,
+    EvacuationGuidelines,
     Prevention,
     SignsSymptoms,
+    TextEntry,
     TreatmentPrincipals,
-    EvacuationGuidelines,
+    VitalSign,
+    VitalSignDescriptor,
 )
 from .serializers import (
-    VitalSignSerializer,
-    VitalSignDescriptorSerializer,
     CategorySerializer,
+    ConditionDetailSerializer,
     ConditionSerializer,
-    TextEntrySerializer,
+    EvacuationGuidelinesSerializer,
     PreventionSerializer,
     SignsSymptomsSerializer,
+    TextEntrySerializer,
     TreatmentPrincipalsSerializer,
-    EvacuationGuidelinesSerializer,
+    VitalSignDescriptorSerializer,
+    VitalSignSerializer,
 )
 
 
@@ -67,3 +68,16 @@ class TreatmentPrincipalsViewSet(viewsets.ModelViewSet):
 class EvacuationGuidelinesViewSet(viewsets.ModelViewSet):
     queryset = EvacuationGuidelines.objects.all()
     serializer_class = EvacuationGuidelinesSerializer
+
+
+class ConditionDetailView(generics.RetrieveAPIView):
+    queryset = Condition.objects.all()
+    serializer_class = ConditionDetailSerializer
+
+    def get_queryset(self):
+        return Condition.objects.prefetch_related(
+            "signssymptoms_set__vital_signs",
+            "signssymptoms_set__text_entries",
+            "treatmentprincipals_set__text_entries",
+            "evacuationguidelines_set__text_entries",
+        )

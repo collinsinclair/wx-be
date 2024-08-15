@@ -1,5 +1,4 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
@@ -68,6 +67,7 @@ class TextEntry(models.Model):
 class ListBase(models.Model):
     condition = models.ForeignKey(Condition, on_delete=models.PROTECT)
     descriptor = models.CharField(max_length=100, null=True, blank=True)
+    text_entries = GenericRelation(TextEntry)
 
     class Meta:
         abstract = True
@@ -87,7 +87,6 @@ class SignsSymptoms(ListBase):
     related_signs_symptoms = models.ManyToManyField(
         "self", blank=True, symmetrical=False, related_name="referenced_by"
     )
-    text_entries = GenericRelation(TextEntry)
 
     def __str__(self):
         return f"S/S of {self.condition.name} - {self.descriptor}"
